@@ -22,6 +22,8 @@ typedef OpenMesh::PolyMesh_ArrayKernelT<> Mesh;
 
 class Model {
 	
+	enum Coords {X=0, Y, Z, W, NUM_OF_COORDS};
+
 	GLuint _vao, _vbo;
 
 	// Attribute handle:
@@ -30,11 +32,18 @@ class Model {
 	// Uniform handle:
 	GLint _fillColorUV;
 	
+	// Translation matrix handle:
+	GLint _translationUV;
+
 	// View port frame:
 	float _width, _height, _offsetX, _offsetY;
 
+	float _fuv;
+
+	uint n_vertices;
+
 	//the mesh to be displayed
-	Mesh _displayedMesh;
+//	Mesh _displayedMesh;
 
 public:
 	Model();
@@ -43,7 +52,7 @@ public:
 	virtual ~Model();
 
 public:
-	void init(char* filename);
+	void init(Mesh& mesh);
 	
 public:
 	void draw();

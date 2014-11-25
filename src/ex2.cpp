@@ -16,6 +16,11 @@
 #include "Model.h"
 #include "ShaderIO.h"
 
+#include "OpenMesh/Core/IO/MeshIO.hh"
+#include "OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh"
+
+typedef OpenMesh::PolyMesh_ArrayKernelT<> Mesh;
+
 /** Internal Definitions */
 
 #define	WINDOW_SIZE         (600) // initial size of the window               //
@@ -40,6 +45,8 @@
 #define KEY_WIREFRAME       ('w') // Key used to toggle wireframe rendering   //
 
 
+
+
 /** display callback */
 void display(void);
 
@@ -58,6 +65,8 @@ void motion(int x, int y) ;
 /** timer callback */
 void timer(int value) ;
 
+
+void loadMesh(Mesh& mesh, const char* filename);
 /** Global variables */
 
 int     g_nFPS = 0, g_nFrames = 0;              // FPS and FPS Counter
@@ -114,8 +123,11 @@ int main(int argc, char* argv[])
     glutMotionFunc(motion);
     glutTimerFunc(100, timer, 0);   // uint millis int value
 	
+
+    Mesh my_mesh;
+    loadMesh(my_mesh, argv[1]);
 	// Init anything that can be done once and for all:
-	_model.init(argv[1]);
+	_model.init(my_mesh);
 
 	// Set clear color to black:
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -126,7 +138,20 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+void loadMesh(Mesh& mesh, const char* filename)
+{
+	if (!OpenMesh::IO::read_mesh(mesh, filename))
+	{
+		// if we didn't make it, exit...
+		fprintf(stderr, "Error loading mesh, Aborting.\n");
+		return;
+	}
 
+	printf("number of vertices is %d\n", mesh.n_vertices());
+	printf("number of faces is %d\n", mesh.n_faces());
+	printf("number of edges is %d\n", mesh.n_edges());
+
+}
 
 
 
@@ -217,6 +242,7 @@ void keyboard(unsigned char key, int x, int y)
  \******************************************************************/
 void mouse(int button, int state, int x, int y)
 {
+//	std::cout<<"button: " << button << ", state: " << state << std::endl;
     if(button == GLUT_LEFT_BUTTON)
     {
 		
