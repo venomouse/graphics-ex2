@@ -38,7 +38,9 @@ class Model {
 	// View port frame:
 	float _width, _height, _offsetX, _offsetY;
 
-	float _fuv;
+	float _fuv, _mouseX, _mouseY;
+
+	glm::mat4 _accumulatedTransMat;
 
 	uint n_vertices;
 
