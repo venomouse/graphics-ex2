@@ -25,7 +25,7 @@
 #define OBJECT_B_RAD (6.f)
 
 Model::Model() :
-_vao(0), _vbo(0)
+_vao(0), _vbo(0), _displayMode(FULL_MODE)
 {
 
 }
@@ -55,16 +55,7 @@ void Model::init(Mesh& mesh)
 
 	{
 
-//		loadMesh(_displayedMesh, filename);
 
-		//here is supposed to be code that fills the vertices from the mesh
-
-		// For this example we create a single triangle:
-//		const float vertices[] = {
-//			0.75f, 0.75f, 0.0f, 1.0f,
-//			0.75f, -0.75f, 0.0f, 1.0f,
-//			-0.75f, -0.75f, 0.0f, 1.0f,
-//		};
 		n_vertices = mesh.n_faces()*3;
 		float vertices[n_vertices*NUM_OF_COORDS];
 		Mesh::Point meshPoint;
@@ -127,7 +118,7 @@ void Model::draw()
 	GLuint program = programManager::sharedInstance().programWithID("default");
 	glUseProgram(program);
 
-	GLenum polygonMode = GL_LINE;   // Also try using GL_FILL and GL_POINT
+	GLenum polygonMode = (_displayMode == WIREFRAME_MODE) ? GL_LINE  : GL_FILL;   // Also try using GL_FILL and GL_POINT
 	glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
 
 	// Draw using the state stored in the Vertex Array object:
@@ -166,4 +157,10 @@ void Model::resize(int width, int height)
     _height = height;
     _offsetX = 0;
     _offsetY = 0;
+}
+
+
+void Model::toggleDisplayMode ()
+{
+	_displayMode = 1 - _displayMode;
 }

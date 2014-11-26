@@ -208,7 +208,8 @@ void keyboard(unsigned char key, int x, int y)
             break;
         case KEY_WIREFRAME:
             // Toggle wireframe mode
-            // For use in a future exercise
+            _model.toggleDisplayMode();
+            glutPostRedisplay();
             break;
         case KEY_ANIMATE:
             if (!g_duringAnimation) {

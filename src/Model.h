@@ -23,6 +23,7 @@ typedef OpenMesh::PolyMesh_ArrayKernelT<> Mesh;
 class Model {
 	
 	enum Coords {X=0, Y, Z, W, NUM_OF_COORDS};
+	typedef enum {WIREFRAME_MODE = 0,FULL_MODE = 1} DisplayMode;
 
 	GLuint _vao, _vbo;
 
@@ -44,6 +45,8 @@ class Model {
 
 	uint n_vertices;
 
+	int _displayMode;
+
 	//the mesh to be displayed
 //	Mesh _displayedMesh;
 
@@ -62,6 +65,9 @@ public:
 public:
 	void resize(int width, int height);
 	
+public:
+	void toggleDisplayMode ();
+
 private:
 	void loadMesh(Mesh& mesh, const char* filename);
 
