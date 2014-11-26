@@ -54,8 +54,6 @@ class Model {
 
 	bool _translationMode;
 
-	bool _zoomMode;
-
 	//the mesh to be displayed
 //	Mesh _displayedMesh;
 

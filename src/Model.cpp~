@@ -28,8 +28,6 @@ _vao(0), _vbo(0), _displayMode(FULL_MODE)
 {
 
 	_translateMat = glm::mat4(1.0f);
-	_zoomMode = false;
-	_translationMode = false;
 
 }
 
@@ -211,7 +209,16 @@ void Model::toggleTranslationMode()
 }
 void Model::toggleZoom()
 {
-	_zoomMode = !_zoomMode;
+	float zoomFactor = (float)(MAX_ZOOM - MIN_ZOOM)*(float)(_mouseY - _beginEventY)/(_height/2.0f);
+	_fov += zoomFactor;
+	if (_fov > MAX_ZOOM)
+	{
+		_fov = MAX_ZOOM;
+	}
+	else if (_fov < MIN_ZOOM)
+	{
+		_fov = MIN_ZOOM;
+	}
 }
 
 void Model::computeCenterAndBoundingBox(Mesh& mesh)
