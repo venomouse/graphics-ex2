@@ -256,19 +256,17 @@ void mouse(int button, int state, int x, int y)
     }
     else if (button == GLUT_MIDDLE_BUTTON)
     {
-    	if (state == GLUT_UP)
-    	{
-    		_model.toggleZoom();
-    	}
+    	_model.toggleZoom();
+
     }
     else if (button == GLUT_RIGHT_BUTTON)
     {
     	_model.toggleTranslationMode();
     	if (state == GLUT_DOWN)
     	{
-    		std::cout << "translation mode turned on" << std::endl;
-    		_model._mouseX = x;
-    		_model._mouseY = y;
+//    		std::cout << "translation mode turned on" << std::endl;
+//    		_model._mouseX = x;
+//    		_model._mouseY = y;
     	}
     }
     

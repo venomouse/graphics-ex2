@@ -20,8 +20,9 @@
 
 #define OBJECT_DEPTH (11.5f)
 #define OBJECT_B_RAD (6.f)
-#define MIN_ZOOM 30.0f
-#define MAX_ZOOM 90.0f
+#define INIT_ZOOM 30.0f
+#define MIN_ZOOM 15.0f
+#define MAX_ZOOM 115.0f
 
 Model::Model() :
 _vao(0), _vbo(0), _displayMode(FULL_MODE)
@@ -58,7 +59,7 @@ void Model::init(Mesh& mesh)
 	_translationUV = glGetUniformLocation(program, "translation");
 
 	{
-		_fov = MIN_ZOOM;
+		_fov = INIT_ZOOM;
 		computeCenterAndBoundingBox(mesh);
 
 		_scaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(OBJECT_B_RAD/glm::length((_boxTR - _boxBL))));
@@ -142,7 +143,7 @@ void Model::draw()
 	);
 
 
-	glm::mat4 Model = _scaleMat*_translateMat * glm::mat4(1.0f);  // Changes for each model
+	glm::mat4 Model = _translateMat*_scaleMat * glm::mat4(1.0f);  // Changes for each model
 
 	glm::mat4 MVP = Projection * View * Model;
 	glUniformMatrix4fv(_translationUV, 1, false, &MVP[0][0]);
@@ -172,8 +173,8 @@ void Model::updateMatrices (int x, int y)
 	if (_translationMode)
 	{
 	//	std::cout << " x: " << x << " mouseX: " << _mouseX << std::endl;
-		float diffX = (float)(x - _mouseX)/(float)_width;
-		float diffY = - (float)(y - _mouseY)/(float)_height;
+		float diffX = (float)(x - _beginEventX)/(float)_width;
+		float diffY = - (float)(y - _beginEventY)/(float)_height;
 		_translateMat = glm::translate(_translateMat,glm::vec3( diffX, diffY, 0.0f));
 	//	std::cout << "translation, diffX: " << diffX << " diffY: " << diffY << std::endl;
 	//	std::cout << "accumulatedMatrix, x: " << _translateMat[0][0] << " y: " << _translateMat[1][1] << std::endl;
@@ -181,7 +182,7 @@ void Model::updateMatrices (int x, int y)
 
     if (_zoomMode)
     {
-        float zoomFactor = (float)(MAX_ZOOM - MIN_ZOOM)*(float)(_mouseY - _beginEventY)/(_height/2.0f);
+        float zoomFactor = (float)(MAX_ZOOM - MIN_ZOOM)*(float)(y - _beginEventY)/(float)(_height);
 	        _fov += zoomFactor;
 	    if (_fov > MAX_ZOOM)
 	    {
