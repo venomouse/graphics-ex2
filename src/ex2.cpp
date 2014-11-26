@@ -244,7 +244,7 @@ void keyboard(unsigned char key, int x, int y)
 void mouse(int button, int state, int x, int y)
 {
 	std::cout<<"button: " << button << ", state: " << state << std::endl;
-	if (state == 1)
+	if (state == GLUT_DOWN)
 	{
 		_model._beginEventX = x;
 		_model._beginEventY = y;
@@ -252,6 +252,13 @@ void mouse(int button, int state, int x, int y)
     if(button == GLUT_LEFT_BUTTON)
     {
 		
+    }
+    else if (button == GLUT_MIDDLE_BUTTON)
+    {
+    	if (state == GLUT_UP)
+    	{
+    		_model.toggleZoom();
+    	}
     }
     else if (button == GLUT_RIGHT_BUTTON)
     {
@@ -276,7 +283,7 @@ void motion(int x, int y)
 {
 	_model._mouseX = x;
 	_model._mouseY = y;
-	std::cout<<"motionXY: " << x << ", " << y <<std::endl;
+//	std::cout<<"motionXY: " << x << ", " << y <<std::endl;
     return;
 }
 

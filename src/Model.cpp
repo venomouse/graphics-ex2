@@ -15,14 +15,14 @@
 #include <GL/gl.h>
 #endif
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include "glm/gtc/matrix_transform.hpp"
+
 
 #define SHADERS_DIR "shaders/"
 
 #define OBJECT_DEPTH (11.5f)
 #define OBJECT_B_RAD (6.f)
+#define MIN_ZOOM 30.0f
+#define MAX_ZOOM 90.0f
 
 Model::Model() :
 _vao(0), _vbo(0), _displayMode(FULL_MODE)
@@ -40,7 +40,8 @@ Model::~Model()
 
 void Model::init(Mesh& mesh)
 {
-	_fuv = 30.0f;
+
+
 	programManager::sharedInstance()
 	.createProgram("default",
 				   SHADERS_DIR "SimpleShader.vert",
@@ -54,8 +55,10 @@ void Model::init(Mesh& mesh)
 	_translationUV = glGetUniformLocation(program, "translation");
 
 	{
+		_fov = MIN_ZOOM;
+		computeCenterAndBoundingBox(mesh);
 
-
+		_scaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(OBJECT_B_RAD/glm::length((_boxTR - _boxBL))));
 		n_vertices = mesh.n_faces()*3;
 		float vertices[n_vertices*NUM_OF_COORDS];
 		Mesh::Point meshPoint;
@@ -66,9 +69,9 @@ void Model::init(Mesh& mesh)
 			{
 				meshPoint = mesh.point(fv_it);
 //				std::cout<< i << ") " << meshPoint[X] << ", " << meshPoint[Y] << ", " << meshPoint[Z] << std::endl;
-				vertices[i*NUM_OF_COORDS + X] = meshPoint[X];
-				vertices[i*NUM_OF_COORDS + Y] = meshPoint[Y];
-				vertices[i*NUM_OF_COORDS + Z] = meshPoint[Z];
+				vertices[i*NUM_OF_COORDS + X] = meshPoint[X] - _boxCenter[X];
+				vertices[i*NUM_OF_COORDS + Y] = meshPoint[Y] - _boxCenter[Y];
+				vertices[i*NUM_OF_COORDS + Z] = meshPoint[Z] - _boxCenter[Z];
 				vertices[i*NUM_OF_COORDS + W] = 1.0f;
 				i++;
 			}
@@ -127,7 +130,7 @@ void Model::draw()
 	float red = 0.3f; float green = 0.5f; float blue = 0.7f;
 	glUniform4f(_fillColorUV, red, green, blue, 1.0);
 
-	glm::mat4 Projection = glm::perspective(_fuv, float(_width) / float(_height), OBJECT_DEPTH - OBJECT_B_RAD,  OBJECT_DEPTH + OBJECT_B_RAD);
+	glm::mat4 Projection = glm::perspective(_fov, float(_width) / float(_height), OBJECT_DEPTH - OBJECT_B_RAD,  OBJECT_DEPTH + OBJECT_B_RAD);
 
 	glm::mat4 View       = glm::lookAt(
 	    glm::vec3(0,0,OBJECT_DEPTH), // Camera is at (x,y,z), in World Space
@@ -135,7 +138,7 @@ void Model::draw()
 	    glm::vec3(0,1,0)  // Head is up
 	);
 
-	glm::mat4 Model = glm::mat4(1.0f);  // Changes for each model
+	glm::mat4 Model = _scaleMat *glm::mat4(1.0f);  // Changes for each model
 
 	glm::mat4 MVP = Projection * View * Model;
 	glUniformMatrix4fv(_translationUV, 1, false, &MVP[0][0]);
@@ -163,4 +166,54 @@ void Model::resize(int width, int height)
 void Model::toggleDisplayMode ()
 {
 	_displayMode = 1 - _displayMode;
+}
+
+void Model::toggleZoom()
+{
+	float zoomFactor = (float)(MAX_ZOOM - MIN_ZOOM)*(float)(_mouseY - _beginEventY)/(_height/2.0f);
+	_fov += zoomFactor;
+	if (_fov > MAX_ZOOM)
+	{
+		_fov = MAX_ZOOM;
+	}
+	else if (_fov < MIN_ZOOM)
+	{
+		_fov = MIN_ZOOM;
+	}
+}
+
+void Model::computeCenterAndBoundingBox(Mesh& mesh)
+{
+	/* Vertex iterator is an iterator which goes over all the vertices of the mesh */
+	Mesh::VertexIter vertexIter;
+	/* This is the specific class used to store the geometrical position of the vertices of
+	the mesh */
+	Mesh::Point p;
+	Mesh:: Point center(0,0,0);
+	const float fm = std::numeric_limits<float>::max();
+	Mesh::Point lowerLeft(fm,fm, fm);
+	Mesh::Point upperRight(0,0,0);
+	/* number of vertices in the mesh */
+	int vNum = mesh.n_vertices();
+	vertexIter = mesh.vertices_begin();
+	lowerLeft = upperRight = mesh.point(vertexIter);
+	/* This is how to go over all the vertices in the mesh */
+	for(vertexIter = mesh.vertices_begin();vertexIter != mesh.vertices_end();++vertexIter)
+	{
+		/* this is how to get the point associated with the vertex */
+		p = mesh.point(vertexIter);
+		center += p;
+		for(int i =0;i <3;i++)
+		{
+			lowerLeft[i] = std::min(lowerLeft[i], p[i]);
+			upperRight[i] = std::max(upperRight[i],p[i]);
+		}
+	}
+	center /= (double)vNum;
+	_boxCenter = glm::vec3(center[0], center[1], center[2]);
+	_boxBL = glm::vec3(lowerLeft[0], lowerLeft[1], lowerLeft[2]);
+	_boxTR = glm::vec3(upperRight[0], upperRight[1], upperRight[2]);
+	std::cout <<"center of object "<< center<< std::endl;
+	std::cout <<"lower left corner of object "<< lowerLeft<<std::endl;
+	std::cout <<"upper right corner of object "<< upperRight<<std::endl;
 }

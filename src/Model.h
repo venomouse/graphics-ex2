@@ -15,6 +15,10 @@
 #include <GL/gl.h>
 #endif
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include "glm/gtc/matrix_transform.hpp"
+
 #include "OpenMesh/Core/IO/MeshIO.hh"
 #include "OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh"
 
@@ -39,9 +43,9 @@ class Model {
 	// View port frame:
 	float _width, _height, _offsetX, _offsetY;
 
+	glm::vec3 _boxCenter, _boxTR, _boxBL;
 
-
-//	glm::mat4 _accumulatedTransMat;
+	glm::mat4 _accumulatedTransMat, _scaleMat, _translateMat;
 
 	uint n_vertices;
 
@@ -51,7 +55,7 @@ class Model {
 //	Mesh _displayedMesh;
 
 public:
-	float _fuv;
+	float _fov;
 	int _mouseX, _mouseY, _beginEventX, _beginEventY;
 
 public:
@@ -71,10 +75,11 @@ public:
 	
 public:
 	void toggleDisplayMode ();
+	void toggleZoom ();
 
 private:
 	void loadMesh(Mesh& mesh, const char* filename);
-
+	void computeCenterAndBoundingBox(Mesh& mesh);
 
 };
 
