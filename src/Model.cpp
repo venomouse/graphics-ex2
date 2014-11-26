@@ -15,10 +15,6 @@
 #include <GL/gl.h>
 #endif
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include "glm/gtc/matrix_transform.hpp"
-
 #define SHADERS_DIR "shaders/"
 
 #define OBJECT_DEPTH (11.5f)
@@ -27,6 +23,8 @@
 Model::Model() :
 _vao(0), _vbo(0), _displayMode(FULL_MODE)
 {
+
+	_translateMat = glm::mat4(1.0f);
 
 }
 
@@ -135,7 +133,8 @@ void Model::draw()
 	    glm::vec3(0,1,0)  // Head is up
 	);
 
-	glm::mat4 Model = glm::mat4(1.0f);  // Changes for each model
+
+	glm::mat4 Model = _translateMat * glm::mat4(1.0f);  // Changes for each model
 
 	glm::mat4 MVP = Projection * View * Model;
 	glUniformMatrix4fv(_translationUV, 1, false, &MVP[0][0]);
@@ -160,7 +159,30 @@ void Model::resize(int width, int height)
 }
 
 
+void Model::updateMatrices (int x, int y)
+{
+	if (_translationMode)
+	{
+	//	std::cout << " x: " << x << " mouseX: " << _mouseX << std::endl;
+		float diffX = (float)(x - _mouseX)/(float)_width;
+		float diffY = - (float)(y - _mouseY)/(float)_height;
+		_translateMat = glm::translate(_translateMat,glm::vec3( diffX, diffY, 0.0f));
+	//	std::cout << "translation, diffX: " << diffX << " diffY: " << diffY << std::endl;
+	//	std::cout << "accumulatedMatrix, x: " << _translateMat[0][0] << " y: " << _translateMat[1][1] << std::endl;
+	}
+
+	_mouseX = x;
+	_mouseY = y;
+
+}
+
+
 void Model::toggleDisplayMode ()
 {
 	_displayMode = 1 - _displayMode;
+}
+
+void Model::toggleTranslationMode()
+{
+	_translationMode = !_translationMode;
 }
