@@ -39,9 +39,9 @@ class Model {
 	// View port frame:
 	float _width, _height, _offsetX, _offsetY;
 
-	float _fuv, _mouseX, _mouseY;
 
-	glm::mat4 _accumulatedTransMat;
+
+//	glm::mat4 _accumulatedTransMat;
 
 	uint n_vertices;
 
@@ -49,6 +49,10 @@ class Model {
 
 	//the mesh to be displayed
 //	Mesh _displayedMesh;
+
+public:
+	float _fuv;
+	int _mouseX, _mouseY, _beginEventX, _beginEventY;
 
 public:
 	Model();

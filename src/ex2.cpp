@@ -243,7 +243,12 @@ void keyboard(unsigned char key, int x, int y)
  \******************************************************************/
 void mouse(int button, int state, int x, int y)
 {
-//	std::cout<<"button: " << button << ", state: " << state << std::endl;
+	std::cout<<"button: " << button << ", state: " << state << std::endl;
+	if (state == 1)
+	{
+		_model._beginEventX = x;
+		_model._beginEventY = y;
+	}
     if(button == GLUT_LEFT_BUTTON)
     {
 		
@@ -269,6 +274,9 @@ void mouse(int button, int state, int x, int y)
  \******************************************************************/
 void motion(int x, int y)
 {
+	_model._mouseX = x;
+	_model._mouseY = y;
+	std::cout<<"motionXY: " << x << ", " << y <<std::endl;
     return;
 }
 
