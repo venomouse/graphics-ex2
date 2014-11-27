@@ -200,7 +200,8 @@ void keyboard(unsigned char key, int x, int y)
     {
         case KEY_RESET:
             // reset to initial view of the object
-            // For use in a future exercise
+        	_model.resetTranslations();
+        	glutPostRedisplay();
             break;
         case KEY_RELOAD:
             // Reload the shading programs of the object
@@ -250,26 +251,41 @@ void mouse(int button, int state, int x, int y)
 		_model._beginEventY = y;
 
 	}
+	else if(state == GLUT_UP)
+	{
+		_model.accumulateTranslations();
+	}
     if(button == GLUT_LEFT_BUTTON)
     {
-		
+    	if(state == GLUT_DOWN)
+		{
+
+			_model.setInitRotVector(x,y);
+		}
+		else if(state == GLUT_UP)
+		{
+			_model.resetInitRotVector();
+		}
+    	_model.toggleRotate();
     }
     else if (button == GLUT_MIDDLE_BUTTON)
     {
+
     	_model.toggleZoom();
 
     }
     else if (button == GLUT_RIGHT_BUTTON)
     {
-    	_model.toggleTranslationMode();
+
     	if (state == GLUT_DOWN)
     	{
 //    		std::cout << "translation mode turned on" << std::endl;
-//    		_model._mouseX = x;
-//    		_model._mouseY = y;
+    		_model._mouseX = x;
+    		_model._mouseY = y;
     	}
+    	_model.toggleTranslationMode();
     }
-    
+
     return;
 }
 
@@ -286,10 +302,7 @@ void mouse(int button, int state, int x, int y)
  \******************************************************************/
 void motion(int x, int y)
 {
-
-
 	_model.updateMatrices(x, y);
-
 	glutPostRedisplay();
     return;
 }

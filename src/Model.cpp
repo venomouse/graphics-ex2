@@ -15,6 +15,7 @@
 #include <GL/gl.h>
 #endif
 
+#include <algorithm>
 
 #define SHADERS_DIR "shaders/"
 
@@ -23,6 +24,7 @@
 #define INIT_ZOOM 30.0f
 #define MIN_ZOOM 15.0f
 #define MAX_ZOOM 115.0f
+#define ROTATE_RADIUS 0.5f
 
 Model::Model() :
 _vao(0), _vbo(0), _displayMode(FULL_MODE)
@@ -31,6 +33,7 @@ _vao(0), _vbo(0), _displayMode(FULL_MODE)
 	_translateMat = glm::mat4(1.0f);
 	_zoomMode = false;
 	_translationMode = false;
+	_rotateMode = false;
 
 }
 
@@ -60,9 +63,13 @@ void Model::init(Mesh& mesh)
 
 	{
 		_fov = INIT_ZOOM;
+		_rotateMat = glm::mat4(1.0f);
+		_accumulatedTransMat = glm::mat4(1.0f);
+		_modelMat = glm::mat4(1.0f);
 		computeCenterAndBoundingBox(mesh);
 
 		_scaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(OBJECT_B_RAD/glm::length((_boxTR - _boxBL))));
+		_accumulatedTransMat = _scaleMat * glm::mat4(1.0f);
 		n_vertices = mesh.n_faces()*3;
 		float vertices[n_vertices*NUM_OF_COORDS];
 		Mesh::Point meshPoint;
@@ -143,9 +150,9 @@ void Model::draw()
 	);
 
 
-	glm::mat4 Model = _translateMat*_scaleMat * glm::mat4(1.0f);  // Changes for each model
+	_modelMat = _translateMat*_rotateMat*_accumulatedTransMat;  // Changes for each model
 
-	glm::mat4 MVP = Projection * View * Model;
+	glm::mat4 MVP = Projection * View * _modelMat;
 	glUniformMatrix4fv(_translationUV, 1, false, &MVP[0][0]);
 
 	
@@ -173,14 +180,17 @@ void Model::updateMatrices (int x, int y)
 	if (_translationMode)
 	{
 	//	std::cout << " x: " << x << " mouseX: " << _mouseX << std::endl;
-		float diffX = (float)(x - _beginEventX)/(float)_width;
-		float diffY = - (float)(y - _beginEventY)/(float)_height;
+		float scale =  OBJECT_B_RAD ;
+		float diffX = scale * (float)(x - _mouseX)/_width;
+		float diffY = -scale * (float)(y - _mouseY)/_height;
 		_translateMat = glm::translate(_translateMat,glm::vec3( diffX, diffY, 0.0f));
 	//	std::cout << "translation, diffX: " << diffX << " diffY: " << diffY << std::endl;
 	//	std::cout << "accumulatedMatrix, x: " << _translateMat[0][0] << " y: " << _translateMat[1][1] << std::endl;
+		_mouseX = x;
+		_mouseY = y;
 	}
 
-    if (_zoomMode)
+	else if (_zoomMode)
     {
         float zoomFactor = (float)(MAX_ZOOM - MIN_ZOOM)*(float)(y - _beginEventY)/(float)(_height);
 	        _fov += zoomFactor;
@@ -193,8 +203,15 @@ void Model::updateMatrices (int x, int y)
 		    _fov = MIN_ZOOM;
 	    }
 	}
-	_mouseX = x;
-	_mouseY = y;
+
+	else if (_rotateMode)
+    {
+    	glm::vec3 currVec = computeNormalVector(x,y);
+    	glm::vec3 rotAxisVec = glm::cross(_initRotVec, currVec);
+    	float rotAngle = float(2 * acosf(glm::dot(_initRotVec, currVec) )/(2.0f * M_PI)*360);
+    	_rotateMat = glm::rotate(glm::mat4(1.0f), rotAngle, rotAxisVec);
+    }
+
 
 }
 
@@ -213,6 +230,40 @@ void Model::toggleTranslationMode()
 void Model::toggleZoom()
 {
 	_zoomMode = !_zoomMode;
+}
+
+void Model::toggleRotate()
+{
+	_rotateMode = !_rotateMode;
+}
+
+void Model::setInitRotVector (int x, int y)
+{
+	if (!_rotVecInit)
+	{
+		_initRotVec = computeNormalVector(x,y);
+		_rotVecInit = true;
+	}
+
+}
+
+void Model::resetInitRotVector()
+{
+	_rotVecInit = false;
+//	_rotateMat = glm::mat4(1.0f);
+}
+
+void Model::accumulateTranslations()
+{
+	_accumulatedTransMat = _modelMat;
+}
+
+void Model::resetTranslations()
+{
+	_rotateMat = glm::mat4(1.0f);
+	_translateMat = glm::mat4(1.0f);
+	_fov = INIT_ZOOM;
+	_accumulatedTransMat = _scaleMat * glm::mat4(1.0f);
 }
 
 void Model::computeCenterAndBoundingBox(Mesh& mesh)
@@ -249,4 +300,13 @@ void Model::computeCenterAndBoundingBox(Mesh& mesh)
 	std::cout <<"center of object "<< center<< std::endl;
 	std::cout <<"lower left corner of object "<< lowerLeft<<std::endl;
 	std::cout <<"upper right corner of object "<< upperRight<<std::endl;
+}
+
+glm::vec3 Model::computeNormalVector(int winX, int winY)
+{
+	float x = (winX - 0.5f*_width)/(0.5f*_width);
+	float y = (0.5f*_height - winY)/(0.5f*_height);
+	float z = (sqrt(x*x + y*y) > ROTATE_RADIUS) ?
+									0: sqrt(ROTATE_RADIUS-x*x - y*y);
+	return glm::normalize(glm::vec3(x, y,z));
 }

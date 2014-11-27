@@ -15,6 +15,8 @@
 #include <GL/gl.h>
 #endif
 
+#include <math.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "glm/gtc/matrix_transform.hpp"
@@ -43,10 +45,10 @@ class Model {
 	// View port frame:
 	float _width, _height, _offsetX, _offsetY;
 
-	glm::vec3 _boxCenter, _boxTR, _boxBL;
+	glm::vec3 _boxCenter, _boxTR, _boxBL, _initRotVec;
 
 
-	glm::mat4 _accumulatedTransMat, _scaleMat, _translateMat;
+	glm::mat4 _modelMat, _accumulatedTransMat, _scaleMat, _translateMat, _rotateMat;
 
 	uint n_vertices;
 
@@ -55,6 +57,10 @@ class Model {
 	bool _translationMode;
 
 	bool _zoomMode;
+
+	bool _rotateMode;
+
+	bool _rotVecInit;
 
 	//the mesh to be displayed
 //	Mesh _displayedMesh;
@@ -82,16 +88,20 @@ public:
 	void updateMatrices (int x, int y);
 	
 public:
+	void toggleTranslationMode();
 	void toggleDisplayMode ();
 	void toggleZoom ();
-
-public:
-	void toggleTranslationMode();
+	void toggleRotate ();
+	void setInitRotVector(int x, int y);
+	void resetInitRotVector();
+	void accumulateTranslations();
+	void resetTranslations();
 
 
 private:
 	void loadMesh(Mesh& mesh, const char* filename);
 	void computeCenterAndBoundingBox(Mesh& mesh);
+	glm::vec3 computeNormalVector(int winX, int winY);
 
 };
 
