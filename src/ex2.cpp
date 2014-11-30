@@ -19,6 +19,7 @@
 #include "OpenMesh/Core/IO/MeshIO.hh"
 #include "OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh"
 
+
 typedef OpenMesh::PolyMesh_ArrayKernelT<> Mesh;
 
 /** Internal Definitions */
@@ -43,6 +44,7 @@ typedef OpenMesh::PolyMesh_ArrayKernelT<> Mesh;
 #define KEY_RESET           ('r') // Key used to reset the applied TX's	      //
 #define KEY_RELOAD          ('l') // Key used to reload the shaders 	      //
 #define KEY_WIREFRAME       ('w') // Key used to toggle wireframe rendering   //
+#define KEY_ORTHOGRAPH		('p') // Key used to toggle orthographic projection //
 
 
 
@@ -217,6 +219,10 @@ void keyboard(unsigned char key, int x, int y)
                 g_startAnimation = true;
             }
             break;
+        case KEY_ORTHOGRAPH:
+        	_model.toggleOrthographMode();
+        	glutPostRedisplay();
+        	break;
         case KEY_QUIT:
         case KEY_ESC:
             // Terminate the program:

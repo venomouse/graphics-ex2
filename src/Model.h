@@ -33,6 +33,8 @@ class Model {
 
 	GLuint _vao, _vbo;
 
+	GLuint  _vao2, _vbo2;
+
 	// Attribute handle:
 	GLint _posAttrib;
 	
@@ -52,7 +54,11 @@ class Model {
 
 	uint n_vertices;
 
+	int _verticesInPerimeter;
+
 	int _displayMode;
+
+	bool _isOrthographic;
 
 	bool _translationMode;
 
@@ -77,6 +83,7 @@ public:
 
 public:
 	void init(Mesh& mesh);
+	void initCircle();
 	
 public:
 	void draw();
@@ -88,6 +95,7 @@ public:
 	void updateMatrices (int x, int y);
 	
 public:
+	void toggleOrthographMode();
 	void toggleTranslationMode();
 	void toggleDisplayMode ();
 	void toggleZoom ();
