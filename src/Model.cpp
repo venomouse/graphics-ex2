@@ -67,9 +67,9 @@ void Model::init(Mesh& mesh)
 	GLuint program = programManager::sharedInstance().programWithID("default");
 		
 	// Obtain uniform variable handles:
-	_fillColorUV  = glGetUniformLocation(program, "fillColor");
-
 	_translationUV = glGetUniformLocation(program, "translation");
+	_colorDirection = glGetUniformLocation(program, "colorDirection");
+	_colorScale = glGetUniformLocation(program, "colorScale");
 
 	{
 		_fov = INIT_ZOOM;
@@ -78,8 +78,9 @@ void Model::init(Mesh& mesh)
 		_modelMat = glm::mat4(1.0f);
 		computeCenterAndBoundingBox(mesh);
 
-		_scaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(OBJECT_B_RAD/glm::length((_boxTR - _boxBL))));
-		_accumulatedTransMat = _scaleMat * glm::mat4(1.0f);
+		_initScaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(OBJECT_B_RAD/glm::length((_boxTR - _boxBL))));
+		_accumulatedTransMat = _initScaleMat * glm::mat4(1.0f);
+
 		n_vertices = mesh.n_faces()*3;
 		float vertices[n_vertices*NUM_OF_COORDS];
 		Mesh::Point meshPoint;
@@ -89,7 +90,6 @@ void Model::init(Mesh& mesh)
 			for(Mesh::FaceVertexIter fv_it = mesh.fv_iter(*f_it);fv_it; ++fv_it)
 			{
 				meshPoint = mesh.point(fv_it);
-//				std::cout<< i << ") " << meshPoint[X] << ", " << meshPoint[Y] << ", " << meshPoint[Z] << std::endl;
 				vertices[i*NUM_OF_COORDS + X] = meshPoint[X] - _boxCenter[X];
 				vertices[i*NUM_OF_COORDS + Y] = meshPoint[Y] - _boxCenter[Y];
 				vertices[i*NUM_OF_COORDS + Z] = meshPoint[Z] - _boxCenter[Z];
@@ -97,19 +97,10 @@ void Model::init(Mesh& mesh)
 				i++;
 			}
 		}
-//		std::cout<< "number of vertices: " << n_vertices << std::endl;
-//		for(uint j = 0 ; j < n_vertices; ++j)
-//		{
-//			std::cout<< j << ") " << vertices[j*NUM_OF_COORDS + X] << ", "
-//					<< vertices[j*NUM_OF_COORDS + Y] << ", "
-//					<< vertices[j*NUM_OF_COORDS + Z] << std::endl;
-//		}
+
 		// Create and bind the object's Vertex Array Object:
 		glGenVertexArrays(1, &_vao);
 		glBindVertexArray(_vao);
-		
-//		VertexHandle beginning = _displayedMesh.vertexHandle(0);
-
 
 		// Create and load vertex data into a Vertex Buffer Object:
 		glGenBuffers(1, &_vbo);
@@ -201,12 +192,9 @@ void Model::draw()
 
 	// Draw using the state stored in the Vertex Array object:
 	glBindVertexArray(_vao);
-	// Set uniform variable with RGB values:
-	float red = 0.3f; float green = 0.5f; float blue = 0.7f;
-	glUniform4f(_fillColorUV, red, green, blue, 1.0);
 
+	//set the projection matrix
 	glm::mat4 Projection;
-
 	if (_isOrthographic)
 	{
 		Projection = glm::ortho(-1.0f * float(_width) / float(_height), float(_width) / float(_height), -1.0f, 1.0f, -1.0f,  1.0f);
@@ -216,24 +204,27 @@ void Model::draw()
 		Projection = glm::perspective(_fov, float(_width) / float(_height), OBJECT_DEPTH - OBJECT_B_RAD,  OBJECT_DEPTH + OBJECT_B_RAD);
 	}
 
-
+	//Setting the view matrix
 	glm::mat4 View       = glm::lookAt(
-	    glm::vec3(0,0,OBJECT_DEPTH), // Camera is at (x,y,z), in World Space
-	    glm::vec3(0,0,1), // and looks at the origin
-	    glm::vec3(0,1,0)  // Head is up
-	);
+							glm::vec3(0,0,OBJECT_DEPTH), // Camera is at (x,y,z), in World Space
+							glm::vec3(0,0,1), // and looks at the origin
+							glm::vec3(0,1,0)  // Head is up
+							);
 
-
+	//calculating the transformation matrix
 	_modelMat = _translateMat*_rotateMat*_accumulatedTransMat;  // Changes for each model
+
+	glm::vec3 colorDirection = _boxBL - _boxCenter;
+    glm::vec3 diagonal = _boxBL -_boxTR;
+    float colorScale = sqrt(diagonal[0]*diagonal[0] + diagonal[1]*diagonal[1] + diagonal[2]*diagonal[2])/2;
 
 	glm::mat4 MVP = Projection * View * _modelMat;
 	glUniformMatrix4fv(_translationUV, 1, false, &MVP[0][0]);
+	glUniform4f(_colorDirection, colorDirection[0], colorDirection[1], colorDirection[2], 1.0);
+	glUniform1f(_colorScale, colorScale);
 
-	
-//	size_t numberOfVertices = 3;
 	glDrawArrays(GL_TRIANGLES, 0, n_vertices);
 	
-
 	GLuint program2 = programManager::sharedInstance().programWithID("default2");
 	glUseProgram(program2);
 
@@ -264,13 +255,10 @@ void Model::updateMatrices (int x, int y)
 {
 	if (_translationMode)
 	{
-	//	std::cout << " x: " << x << " mouseX: " << _mouseX << std::endl;
 		float scale =  OBJECT_B_RAD ;
 		float diffX = scale * (float)(x - _mouseX)/_width;
 		float diffY = -scale * (float)(y - _mouseY)/_height;
 		_translateMat = glm::translate(_translateMat,glm::vec3( diffX, diffY, 0.0f));
-	//	std::cout << "translation, diffX: " << diffX << " diffY: " << diffY << std::endl;
-	//	std::cout << "accumulatedMatrix, x: " << _translateMat[0][0] << " y: " << _translateMat[1][1] << std::endl;
 		_mouseX = x;
 		_mouseY = y;
 	}
@@ -278,7 +266,7 @@ void Model::updateMatrices (int x, int y)
 	else if (_zoomMode)
     {
         float zoomFactor = (float)(MAX_ZOOM - MIN_ZOOM)*(float)(y - _beginEventY)/(float)(_height);
-	        _fov += zoomFactor;
+	        _fov -= zoomFactor;
 	    if (_fov > MAX_ZOOM)
 	    {
 		    _fov = MAX_ZOOM;
@@ -342,9 +330,12 @@ void Model::resetInitRotVector()
 //	_rotateMat = glm::mat4(1.0f);
 }
 
-void Model::accumulateTranslations()
+void Model::accumulateTransformations()
 {
 	_accumulatedTransMat = _modelMat;
+	_translateMat = glm::mat4(1.0f);
+	_rotateMat = glm::mat4(1.0f);
+
 }
 
 void Model::resetTranslations()
@@ -352,7 +343,7 @@ void Model::resetTranslations()
 	_rotateMat = glm::mat4(1.0f);
 	_translateMat = glm::mat4(1.0f);
 	_fov = INIT_ZOOM;
-	_accumulatedTransMat = _scaleMat * glm::mat4(1.0f);
+	_accumulatedTransMat = _initScaleMat * glm::mat4(1.0f);
 }
 
 void Model::computeCenterAndBoundingBox(Mesh& mesh)
@@ -363,13 +354,16 @@ void Model::computeCenterAndBoundingBox(Mesh& mesh)
 	the mesh */
 	Mesh::Point p;
 	Mesh:: Point center(0,0,0);
+
 	const float fm = std::numeric_limits<float>::max();
 	Mesh::Point lowerLeft(fm,fm, fm);
 	Mesh::Point upperRight(0,0,0);
+
 	/* number of vertices in the mesh */
 	int vNum = mesh.n_vertices();
 	vertexIter = mesh.vertices_begin();
 	lowerLeft = upperRight = mesh.point(vertexIter);
+
 	/* This is how to go over all the vertices in the mesh */
 	for(vertexIter = mesh.vertices_begin();vertexIter != mesh.vertices_end();++vertexIter)
 	{
@@ -386,9 +380,6 @@ void Model::computeCenterAndBoundingBox(Mesh& mesh)
 	_boxCenter = glm::vec3(center[0], center[1], center[2]);
 	_boxBL = glm::vec3(lowerLeft[0], lowerLeft[1], lowerLeft[2]);
 	_boxTR = glm::vec3(upperRight[0], upperRight[1], upperRight[2]);
-	std::cout <<"center of object "<< center<< std::endl;
-	std::cout <<"lower left corner of object "<< lowerLeft<<std::endl;
-	std::cout <<"upper right corner of object "<< upperRight<<std::endl;
 }
 
 glm::vec3 Model::computeNormalVector(int winX, int winY)

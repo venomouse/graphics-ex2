@@ -38,42 +38,42 @@ class Model {
 	// Attribute handle:
 	GLint _posAttrib;
 	
-	// Uniform handle:
-	GLint _fillColorUV;
-	
 	// Translation matrix handle:
 	GLint _translationUV;
 
+	GLint _colorDirection;
+
+	GLint _colorScale;
 	// View port frame:
 	float _width, _height, _offsetX, _offsetY;
 
+	//bounding box parameters
 	glm::vec3 _boxCenter, _boxTR, _boxBL, _initRotVec;
 
-
-	glm::mat4 _modelMat, _accumulatedTransMat, _scaleMat, _translateMat, _rotateMat;
+	//transformation matrices
+	glm::mat4 _modelMat, _accumulatedTransMat, _initScaleMat, _translateMat, _rotateMat;
 
 	uint n_vertices;
 
 	int _verticesInPerimeter;
 
+	//wireframe or fill displaymode
 	int _displayMode;
 
+	//projection mode
 	bool _isOrthographic;
 
-	bool _translationMode;
-
-	bool _zoomMode;
-
-	bool _rotateMode;
+	//mouse movement modes
+	bool _translationMode, _zoomMode, _rotateMode;
 
 	bool _rotVecInit;
 
-	//the mesh to be displayed
-//	Mesh _displayedMesh;
-
 public:
 	float _fov;
-	int _mouseX, _mouseY, _beginEventX, _beginEventY;
+	//current mouse coordinates
+	int _mouseX, _mouseY;
+	//mouse coordinates at the beginning of the event
+	int _beginEventX, _beginEventY;
 
 public:
 	Model();
@@ -92,23 +92,29 @@ public:
 	void resize(int width, int height);
 
 public:
+	//updates the translation and rotation matrices and zoom angle during mouse move
 	void updateMatrices (int x, int y);
-	
-public:
+	//change display modes
 	void toggleOrthographMode();
 	void toggleTranslationMode();
 	void toggleDisplayMode ();
 	void toggleZoom ();
 	void toggleRotate ();
+
 	void setInitRotVector(int x, int y);
-	void resetInitRotVector();
-	void accumulateTranslations();
+
+	//save the transformations after the mouse release
+	void accumulateTransformations();
+
+	//reset to initial position
 	void resetTranslations();
+	void resetInitRotVector();
 
 
 private:
-	void loadMesh(Mesh& mesh, const char* filename);
+	//determine the bounding box
 	void computeCenterAndBoundingBox(Mesh& mesh);
+	//compute normal for rotation purposes
 	glm::vec3 computeNormalVector(int winX, int winY);
 
 };

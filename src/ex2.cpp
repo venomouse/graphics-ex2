@@ -133,6 +133,7 @@ int main(int argc, char* argv[])
 
 	// Set clear color to black:
 	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glEnable(GL_DEPTH_TEST);
 		
 	// Start events/drawing loop
 	glutMainLoop();
@@ -149,10 +150,6 @@ void loadMesh(Mesh& mesh, const char* filename)
 		return;
 	}
 
-	printf("number of vertices is %d\n", mesh.n_vertices());
-	printf("number of faces is %d\n", mesh.n_faces());
-	printf("number of edges is %d\n", mesh.n_edges());
-
 }
 
 
@@ -160,7 +157,7 @@ void loadMesh(Mesh& mesh, const char* filename)
 void display(void)
 {
 	// Clear the screen buffer
-    glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	
 	// Let the model to draw itself...
 	_model.draw();
@@ -251,16 +248,12 @@ void keyboard(unsigned char key, int x, int y)
 void mouse(int button, int state, int x, int y)
 {
 
-	if (state == GLUT_DOWN)
+    if(state == GLUT_UP)
 	{
-		_model._beginEventX = x;
-		_model._beginEventY = y;
+		_model.accumulateTransformations();
+	}
 
-	}
-	else if(state == GLUT_UP)
-	{
-		_model.accumulateTranslations();
-	}
+    //rotation
     if(button == GLUT_LEFT_BUTTON)
     {
     	if(state == GLUT_DOWN)
@@ -274,18 +267,24 @@ void mouse(int button, int state, int x, int y)
 		}
     	_model.toggleRotate();
     }
+
+    //zoom
     else if (button == GLUT_MIDDLE_BUTTON)
     {
+    	if (state == GLUT_DOWN)
+    	{
+    		_model._beginEventX = x;
+    		_model._beginEventY = y;
+    	}
 
     	_model.toggleZoom();
 
     }
+    //translation
     else if (button == GLUT_RIGHT_BUTTON)
     {
-
     	if (state == GLUT_DOWN)
     	{
-//    		std::cout << "translation mode turned on" << std::endl;
     		_model._mouseX = x;
     		_model._mouseY = y;
     	}
