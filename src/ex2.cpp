@@ -275,6 +275,7 @@ void mouse(int button, int state, int x, int y)
     	{
     		_model._beginEventX = x;
     		_model._beginEventY = y;
+    		_model._mouseY = y;
     	}
 
     	_model.toggleZoom();

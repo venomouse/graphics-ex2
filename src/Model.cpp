@@ -266,7 +266,7 @@ void Model::updateMatrices (int x, int y)
 	else if (_zoomMode)
     {
         float zoomFactor = (float)(MAX_ZOOM - MIN_ZOOM)*(float)(y - _mouseY)/(float)(_height);
-	        _fov -= zoomFactor;
+		_fov -= zoomFactor;
 	    if (_fov > MAX_ZOOM)
 	    {
 		    _fov = MAX_ZOOM;
