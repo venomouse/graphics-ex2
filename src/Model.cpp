@@ -68,6 +68,7 @@ void Model::init(Mesh& mesh)
 		
 	// Obtain uniform variable handles:
 	_translationUV = glGetUniformLocation(program, "translation");
+
 	_colorDirection = glGetUniformLocation(program, "colorDirection");
 	_colorScale = glGetUniformLocation(program, "colorScale");
 
@@ -134,6 +135,8 @@ void Model::initCircle()
 	GLuint program2 = programManager::sharedInstance().programWithID("default2");
 	{
 
+		_circTranslationUV = glGetUniformLocation(program2, "circTranslation");
+
 		float verticeArr[(VERTICES_IN_PERIMETER)*NUM_OF_COORDS];
 		//initializing the center
 		//the circle should be in the middle of the window
@@ -197,7 +200,19 @@ void Model::draw()
 	glm::mat4 Projection;
 	if (_isOrthographic)
 	{
-		Projection = glm::ortho(-1.0f * float(_width) / float(_height), float(_width) / float(_height), -1.0f, 1.0f, -1.0f,  1.0f);
+
+		float zoomFactor = OBJECT_DEPTH* glm::tan(glm::radians(_fov/2) );
+		float horZoom = zoomFactor;
+		float verZoom = zoomFactor;
+		if (_width > _height)
+		{
+			horZoom *=((float)_width/(float)_height);
+		}
+		else if(_height > _width)
+		{
+			verZoom +=  ((float)_height/(float)_width);
+		}
+		Projection = glm::ortho(-1.0f*horZoom, 1.0f*horZoom, -1.0f*verZoom, 1.0f*verZoom, NEAR,  FAR);
 	}
 	else
 	{
@@ -234,6 +249,16 @@ void Model::draw()
 	// Draw using the state stored in the Vertex Array object:
 	glBindVertexArray(_vao2);
 
+	glm::mat4 circTranslation = glm::mat4(1.0f);
+	if (_width > _height)
+	{
+		circTranslation *= glm::vec4(1.0f,_width/_height, 1.0f, 1.0f);
+	}
+	else if (_height > _width)
+	{
+		circTranslation *= glm::vec4(_height/_width,1.0f, 1.0f, 1.0f);
+	}
+	glUniformMatrix4fv(_circTranslationUV, 1, false, &circTranslation[0][0]);
 	glDrawArrays(GL_LINE_LOOP, 0, _verticesInPerimeter);
 	// Unbind the Vertex Array object
 	glBindVertexArray(0);

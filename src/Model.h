@@ -41,6 +41,8 @@ class Model {
 	// Translation matrix handle:
 	GLint _translationUV;
 
+	GLint _circTranslationUV;
+
 	GLint _colorDirection;
 
 	GLint _colorScale;

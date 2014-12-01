@@ -1,0 +1,37 @@
+!SESSION 2014-12-01 21:05:15.732 -----------------------------------------------
+eclipse.buildId=I20120608-1400
+java.version=1.7.0_55
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Framework arguments:  -product org.eclipse.epp.package.cpp.product
+Command-line arguments:  -os linux -ws gtk -arch x86_64 -product org.eclipse.epp.package.cpp.product
+
+!ENTRY org.eclipse.jface 2 0 2014-12-01 21:05:29.298
+!MESSAGE Keybinding conflicts occurred.  They may interfere with normal accelerator operation.
+!SUBENTRY 1 org.eclipse.jface 2 0 2014-12-01 21:05:29.299
+!MESSAGE A conflict occurred for ALT+CTRL+P:
+Binding(ALT+CTRL+P,
+	ParameterizedCommand(Command(org.eclipse.linuxtools.changelog.core.preparechangelog,Prepare Changelog,
+		Prepares Changelog,
+		Category(org.eclipse.linuxtools.changelog,Changelog,Changelog key bindings,true),
+		org.eclipse.ui.internal.MakeHandlersGo@6b6fe9e7,
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+Binding(ALT+CTRL+P,
+	ParameterizedCommand(Command(org.eclipse.team.svn.ui.command.CreatePatchCommand,Create Patch...,
+		,
+		Category(org.eclipse.team.svn.ui.command.category,SVN,null,true),
+		org.eclipse.ui.internal.MakeHandlersGo@7fa6a33,
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+
+!ENTRY org.eclipse.ui 4 4 2014-12-01 21:05:31.792
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'project/org.eclipse.cdt.ui.prjmenu' is invalid): org.eclipse.cdt.ui.manageConfigsAction2
+
+!ENTRY org.eclipse.ui 4 4 2014-12-01 21:05:31.792
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'project/org.eclipse.cdt.ui.prjmenu' is invalid): org.eclipse.cdt.ui.buildConfigMenuAction
+
+!ENTRY org.eclipse.ui 4 4 2014-12-01 21:05:31.793
+!MESSAGE Plug-in 'org.eclipse.cdt.ui' contributed an invalid Menu Extension (Path: 'project/org.eclipse.cdt.ui.prjmenu' is invalid): org.eclipse.cdt.ui.wsselection
