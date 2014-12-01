@@ -24,7 +24,7 @@
 #define NEAR 					(OBJECT_DEPTH - OBJECT_B_RAD)
 #define FAR						(OBJECT_DEPTH + OBJECT_B_RAD)
 #define INIT_ZOOM 				(25.0f)
-#define MIN_ZOOM 				(15.0f)
+#define MIN_ZOOM 				(5.0f)
 #define MAX_ZOOM 				(150.0f)
 #define ROTATE_RADIUS 			(0.8f)
 #define DEGREES_IN_CIRCLE 		(360)
@@ -265,7 +265,7 @@ void Model::updateMatrices (int x, int y)
 
 	else if (_zoomMode)
     {
-        float zoomFactor = (float)(MAX_ZOOM - MIN_ZOOM)*(float)(y - _beginEventY)/(float)(_height);
+        float zoomFactor = (float)(MAX_ZOOM - MIN_ZOOM)*(float)(y - _mouseY)/(float)(_height);
 	        _fov -= zoomFactor;
 	    if (_fov > MAX_ZOOM)
 	    {
@@ -275,6 +275,7 @@ void Model::updateMatrices (int x, int y)
 	    {
 		    _fov = MIN_ZOOM;
 	    }
+	    _mouseY = y;
 	}
 
 	else if (_rotateMode)
