@@ -70,12 +70,14 @@ class Model {
 
 	bool _rotVecInit;
 
+	bool _pressedInside;
+
+
 public:
 	float _fov;
 	//current mouse coordinates
 	int _mouseX, _mouseY;
-	//mouse coordinates at the beginning of the event
-	int _beginEventX, _beginEventY;
+
 
 public:
 	Model();
@@ -110,14 +112,17 @@ public:
 
 	//reset to initial position
 	void resetTranslations();
-	void resetInitRotVector();
 
+	bool insideArcball(int winX, int winY);
 
+	void setPressedInside(int winX, int winY);
 private:
 	//determine the bounding box
 	void computeCenterAndBoundingBox(Mesh& mesh);
 	//compute normal for rotation purposes
 	glm::vec3 computeNormalVector(int winX, int winY);
+
+	glm::vec2 getCoordianatesInWorldSpace(int winX, int winY);
 
 };
 

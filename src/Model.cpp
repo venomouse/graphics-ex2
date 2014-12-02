@@ -252,11 +252,11 @@ void Model::draw()
 	glm::mat4 circTranslation = glm::mat4(1.0f);
 	if (_width > _height)
 	{
-		circTranslation *= glm::vec4(1.0f,_width/_height, 1.0f, 1.0f);
+		circTranslation *= glm::vec4(1.0f,(float)_width/(float)_height, 1.0f, 1.0f);
 	}
 	else if (_height > _width)
 	{
-		circTranslation *= glm::vec4(_height/_width,1.0f, 1.0f, 1.0f);
+		circTranslation *= glm::vec4((float)_height/(float)_width,1.0f, 1.0f, 1.0f);
 	}
 	glUniformMatrix4fv(_circTranslationUV, 1, false, &circTranslation[0][0]);
 	glDrawArrays(GL_LINE_LOOP, 0, _verticesInPerimeter);
@@ -303,11 +303,11 @@ void Model::updateMatrices (int x, int y)
 	    _mouseY = y;
 	}
 
-	else if (_rotateMode)
+	else if (_rotateMode && _pressedInside)
     {
     	glm::vec3 currVec = computeNormalVector(x,y);
     	glm::vec3 rotAxisVec = glm::cross(_initRotVec, currVec);
-    	float rotAngle = float(2 * acosf(glm::dot(_initRotVec, currVec) )/(2.0f * M_PI)*360);
+    	float rotAngle = float(2.0 * acosf(glm::dot(_initRotVec, currVec) )/(2.0f * M_PI)*360.0);
     	_rotateMat = glm::rotate(glm::mat4(1.0f), rotAngle, rotAxisVec);
     }
 
@@ -350,16 +350,11 @@ void Model::setInitRotVector (int x, int y)
 
 }
 
-void Model::resetInitRotVector()
-{
-	_rotVecInit = false;
-//	_rotateMat = glm::mat4(1.0f);
-}
-
 void Model::accumulateTransformations()
 {
 	_accumulatedTransMat = _modelMat;
 	_translateMat = glm::mat4(1.0f);
+	_rotVecInit = false;
 	_rotateMat = glm::mat4(1.0f);
 
 }
@@ -410,9 +405,58 @@ void Model::computeCenterAndBoundingBox(Mesh& mesh)
 
 glm::vec3 Model::computeNormalVector(int winX, int winY)
 {
+//	float x = (winX - 0.5f*_width)/(0.5f*_width);
+//	float y = (0.5f*_height - winY)/(0.5f*_height);
+//	if (_width > _height)
+//	{
+//		y*= (float)_height/(float)_width;
+//	}
+//	else if (_height > _width)
+//	{
+//		x *= (float)_width/(float)_height;
+//	}
+	glm::vec2 xy = getCoordianatesInWorldSpace(winX, winY);
+	float x = xy[0];
+	float y = xy[1];
+	float z = (sqrt(x*x + y*y) > ROTATE_RADIUS) ?
+									0: sqrt(ROTATE_RADIUS*ROTATE_RADIUS-x*x - y*y);
+	return glm::normalize(glm::vec3(x, y,z));
+}
+
+bool Model::insideArcball(int winX, int winY)
+{
+//	float x = (winX - 0.5f*_width)/(0.5f*_width);
+//	float y = (0.5f*_height - winY)/(0.5f*_height);
+//	if (_width > _height)
+//	{
+//		y*= (float)_height/(float)_width;
+//	}
+//	else if (_height > _width)
+//	{
+//		x *= (float)_width/(float)_height;
+//	}
+	glm::vec2 xy = getCoordianatesInWorldSpace(winX, winY);
+	float x = xy[0];
+	float y = xy[1];
+	return (sqrt(x*x + y*y) <= ROTATE_RADIUS);
+}
+
+void Model::setPressedInside(int winX, int winY)
+{
+	_pressedInside = insideArcball(winX, winY);
+}
+
+glm::vec2 Model::getCoordianatesInWorldSpace(int winX, int winY)
+{
 	float x = (winX - 0.5f*_width)/(0.5f*_width);
 	float y = (0.5f*_height - winY)/(0.5f*_height);
-	float z = (sqrt(x*x + y*y) > ROTATE_RADIUS) ?
-									0: sqrt(ROTATE_RADIUS-x*x - y*y);
-	return glm::normalize(glm::vec3(x, y,z));
+	if (_width > _height)
+	{
+		y*= (float)_height/(float)_width;
+	}
+	else if (_height > _width)
+	{
+		x *= (float)_width/(float)_height;
+	}
+	return glm::vec2(x,y);
 }

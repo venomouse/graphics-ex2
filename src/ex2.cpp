@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 		std::cerr << "usage: ex2 <input-mesh>" << std::endl;
 		exit(1);
 	}
-	std::cout << "Starting ex0..." << std::endl;
+	std::cout << "Starting ex2..." << std::endl;
 	
 	// Initialize GLUT
     glutInit(&argc, argv) ;
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 #endif
     glutInitWindowSize(WINDOW_SIZE, WINDOW_SIZE);
     glutInitWindowPosition(WINDOW_POS_X, WINDOW_POS_Y);
-    glutCreateWindow("CG Ex0");
+    glutCreateWindow("CG Ex2");
 	
 	// Initialize GLEW
     glewExperimental = GL_TRUE;
@@ -258,12 +258,8 @@ void mouse(int button, int state, int x, int y)
     {
     	if(state == GLUT_DOWN)
 		{
-
+    		_model.setPressedInside(x, y);
 			_model.setInitRotVector(x,y);
-		}
-		else if(state == GLUT_UP)
-		{
-			_model.resetInitRotVector();
 		}
     	_model.toggleRotate();
     }
@@ -273,8 +269,6 @@ void mouse(int button, int state, int x, int y)
     {
     	if (state == GLUT_DOWN)
     	{
-    		_model._beginEventX = x;
-    		_model._beginEventY = y;
     		_model._mouseY = y;
     	}
 
