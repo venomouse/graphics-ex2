@@ -49,11 +49,12 @@ class Model {
 	// View port frame:
 	float _width, _height, _offsetX, _offsetY;
 
+	float _initScaleFactor, _scaleFactor;
 	//bounding box parameters
 	glm::vec3 _boxCenter, _boxTR, _boxBL, _initRotVec;
 
 	//transformation matrices
-	glm::mat4 _modelMat, _accumulatedTransMat, _initScaleMat, _translateMat, _rotateMat;
+	glm::mat4 _modelMat, _accumulatedTransMat, _initScaleMat, _translateMat, _rotateMat, _scaleMat;
 
 	uint n_vertices;
 

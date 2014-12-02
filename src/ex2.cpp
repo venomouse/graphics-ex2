@@ -129,6 +129,7 @@ int main(int argc, char* argv[])
     Mesh my_mesh;
     loadMesh(my_mesh, argv[1]);
 	// Init anything that can be done once and for all:
+    _model.resize(WINDOW_SIZE, WINDOW_SIZE);
 	_model.init(my_mesh);
 
 	// Set clear color to black:

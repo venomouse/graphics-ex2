@@ -79,7 +79,11 @@ void Model::init(Mesh& mesh)
 		_modelMat = glm::mat4(1.0f);
 		computeCenterAndBoundingBox(mesh);
 
-		_initScaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(OBJECT_B_RAD/glm::length((_boxTR - _boxBL))));
+		_initScaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(OBJECT_B_RAD*1.1f/glm::length((_boxTR - _boxBL))));
+		_scaleFactor = (float)_width/(float)_height;
+		_initScaleFactor = _scaleFactor;
+//		std::cout << "scale factor: " << _scaleFactor << std::endl;
+		_scaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(_scaleFactor, _scaleFactor, 1.0f));
 		_accumulatedTransMat = _initScaleMat * glm::mat4(1.0f);
 
 		n_vertices = mesh.n_faces()*3;
@@ -210,7 +214,7 @@ void Model::draw()
 		}
 		else if(_height > _width)
 		{
-			verZoom +=  ((float)_height/(float)_width);
+			verZoom *=  ((float)_height/(float)_width);
 		}
 		Projection = glm::ortho(-1.0f*horZoom, 1.0f*horZoom, -1.0f*verZoom, 1.0f*verZoom, NEAR,  FAR);
 	}
@@ -233,7 +237,7 @@ void Model::draw()
     glm::vec3 diagonal = _boxBL -_boxTR;
     float colorScale = sqrt(diagonal[0]*diagonal[0] + diagonal[1]*diagonal[1] + diagonal[2]*diagonal[2])/2;
 
-	glm::mat4 MVP = Projection * View * _modelMat;
+	glm::mat4 MVP = _scaleMat *  Projection * View * _modelMat;
 	glUniformMatrix4fv(_translationUV, 1, false, &MVP[0][0]);
 	glUniform4f(_colorDirection, colorDirection[0], colorDirection[1], colorDirection[2], 1.0);
 	glUniform1f(_colorScale, colorScale);
@@ -252,11 +256,11 @@ void Model::draw()
 	glm::mat4 circTranslation = glm::mat4(1.0f);
 	if (_width > _height)
 	{
-		circTranslation *= glm::vec4(1.0f,(float)_width/(float)_height, 1.0f, 1.0f);
+		circTranslation *= (glm::vec4(1.0f,(float)_width/(float)_height, 1.0f, 1.0f));
 	}
 	else if (_height > _width)
 	{
-		circTranslation *= glm::vec4((float)_height/(float)_width,1.0f, 1.0f, 1.0f);
+		circTranslation *= (glm::vec4((float)_height/(float)_width,1.0f, 1.0f, 1.0f));
 	}
 	glUniformMatrix4fv(_circTranslationUV, 1, false, &circTranslation[0][0]);
 	glDrawArrays(GL_LINE_LOOP, 0, _verticesInPerimeter);
@@ -273,6 +277,16 @@ void Model::resize(int width, int height)
     _height = height;
     _offsetX = 0;
     _offsetY = 0;
+
+    if (_width > _height)
+	{
+    	_scaleFactor  = (float)_width/(float)_height;
+	}
+	else if (_height > _width)
+	{
+		_scaleFactor  = _initScaleFactor;
+	}
+    _scaleMat =  glm::scale(glm::mat4(1.0f), glm::vec3(_scaleFactor,_scaleFactor,1.0f));
 }
 
 
@@ -405,16 +419,6 @@ void Model::computeCenterAndBoundingBox(Mesh& mesh)
 
 glm::vec3 Model::computeNormalVector(int winX, int winY)
 {
-//	float x = (winX - 0.5f*_width)/(0.5f*_width);
-//	float y = (0.5f*_height - winY)/(0.5f*_height);
-//	if (_width > _height)
-//	{
-//		y*= (float)_height/(float)_width;
-//	}
-//	else if (_height > _width)
-//	{
-//		x *= (float)_width/(float)_height;
-//	}
 	glm::vec2 xy = getCoordianatesInWorldSpace(winX, winY);
 	float x = xy[0];
 	float y = xy[1];
@@ -425,16 +429,6 @@ glm::vec3 Model::computeNormalVector(int winX, int winY)
 
 bool Model::insideArcball(int winX, int winY)
 {
-//	float x = (winX - 0.5f*_width)/(0.5f*_width);
-//	float y = (0.5f*_height - winY)/(0.5f*_height);
-//	if (_width > _height)
-//	{
-//		y*= (float)_height/(float)_width;
-//	}
-//	else if (_height > _width)
-//	{
-//		x *= (float)_width/(float)_height;
-//	}
 	glm::vec2 xy = getCoordianatesInWorldSpace(winX, winY);
 	float x = xy[0];
 	float y = xy[1];
